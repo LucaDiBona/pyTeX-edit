@@ -47,7 +47,7 @@ class LatexFile():
         """
         updates self.packages from self.fileContents
         """
-        self.packages = []
+        self.__packages = []
         i = 0
         while i <= len(self.fileContents):
             self.packageImport = self.inBrackets(("{", "}"), "usepackage", i)
@@ -55,16 +55,37 @@ class LatexFile():
                 #there are options
                 self.options=self.inBrackets(("[", "]"), "usepackage", i)
                 if 0 < self.options["endPos"] < self.packageImport["pos"]:
-                    self.packages.append(Package(self.packageImport["contents"],(self.options["contents"].split(",")))) #TODO make more robust in case of comma in val
+                    self.__packages.append(Package(self.packageImport["contents"],(self.options["contents"].split(",")))) #TODO make more robust in case of comma in val
                 else:
-                    self.packages.append(Package(self.packageImport["contents"]))
+                    self.__packages.append(Package(self.packageImport["contents"]))
                 i = self.packageImport["endPos"]
 
             else:
                 break
 
     def getPackages(self) -> list:
-        pass  # TODO output packages
+        """
+        getter for packages
+
+        Returns:
+            list: a list of package objects
+        """
+        return(self.__packages)
+
+    def package(self, name: str) -> object:
+        """
+        get a single package
+
+        Args:
+            name (str): the name of the package
+
+        Returns:
+            Package or None: the package, returns None if doesn't exist
+        """
+        for i in self.__packages:
+            if i.name == name:
+                return(i)
+        return(None)
 
     def groupPackages(self) -> None:
         pass  # TODO group all packages without options into one \usepackage

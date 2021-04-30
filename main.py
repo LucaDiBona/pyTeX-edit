@@ -10,3 +10,7 @@ while running:
 
     elif command == "tree":
         print(x.getStructure())
+    elif command == "ls pkg":
+        print(x.getPackages())
+    elif command == "geo":
+        print(x.package("amsmath"))
