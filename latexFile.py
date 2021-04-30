@@ -1,22 +1,21 @@
-#TODO Deal with \DocumentClass
-#TODO Deal with author, title, date etc
+# TODO Deal with \DocumentClass
+# TODO Deal with author, title, date etc
 class LatexFile():
 
     def __init__(self, fileName: str) -> None:
         self.SECTION_HIERARCHY = ["chapter",
                                   "section", "subsection", "subsubsection"]
-        self.ALLOWED_COMMAND_ADDITIONS = ["["] # if one of these characters follows a command, it won't be read as part of the command
+        # if one of these characters follows a command, it won't be read as part of the command
+        self.ALLOWED_COMMAND_ADDITIONS = ["["]
         self.fileName = fileName
         self.__f = open(fileName, "a+")
         self.__f.seek(0)
         self.__fContentsI = self.__f.read()
         self.fileContents = self.__fContentsI
-        print(self.inBrackets(("{","}"),"chapter",0))
-        print(self.inBrackets(("{","}"),"usepackage",0))
-        print(self.inBrackets(("[","]"),"usepackage",0))
+        print(self.inBrackets(("{", "}"), "chapter", 0))
+        print(self.inBrackets(("{", "}"), "usepackage", 0))
+        print(self.inBrackets(("[", "]"), "usepackage", 0))
         self.updatePackages()
-
-
 
     def getStructure(self) -> list:
         """
@@ -34,7 +33,7 @@ class LatexFile():
             j = 0
             # iterates through current string, finding all subsections
             while j <= len(self.fileContents):
-                self.currentDict = self.inBrackets(("{","}"),val, j)
+                self.currentDict = self.inBrackets(("{", "}"), val, j)
                 if self.currentDict["endPos"] >= 0:
                     self.structure.append(
                         {"layer": i, "title": self.currentDict["contents"], "pos": self.currentDict["pos"]})
@@ -47,27 +46,26 @@ class LatexFile():
         """
         updates self.packages from self.fileContents
         """
-        self.packages=[]
-        i=0
+        self.packages = []
+        i = 0
         while i <= len(self.fileContents):
-            self.packageImport=self.inBrackets(("{","}"),"usepackage",i)
-            if self.packageImport["endPos"] >=0:
-                if self.inBrackets(("[","]"),"usepackage",i)["endPos"] > self.packageImport["pos"]:
+            self.packageImport = self.inBrackets(("{", "}"), "usepackage", i)
+            if self.packageImport["endPos"] >= 0:
+                if self.inBrackets(("[", "]"), "usepackage", i)["endPos"] > self.packageImport["pos"]:
                     pass
-            i +=1
-
+            i += 1
 
     def getPackages(self) -> list:
-        pass #TODO output packages
+        pass  # TODO output packages
 
     def groupPackages(self) -> None:
-        pass #TODO group all packages without options into one \usepackage
+        pass  # TODO group all packages without options into one \usepackage
 
     def splitPackages(self) -> None:
-        pass #TODO split packages into separate \usepackages
+        pass  # TODO split packages into separate \usepackages
 
-    def addPackage(self, name: str, options = None) -> None:
-        pass #TODO add package
+    def addPackage(self, name: str, options=None) -> None:
+        pass  # TODO add package
 
     def inBrackets(self, brackets: tuple, keyword: str, startPos: int = 0) -> dict:
         """
@@ -87,9 +85,10 @@ class LatexFile():
         """
         self.__endKywd = self.fileContents.find(
             ("\\"+keyword), startPos, len(self.fileContents))
-        self.__checkVal=self.__endKywd + len(keyword) + 1
+        self.__checkVal = self.__endKywd + len(keyword) + 1
         if self.fileContents[self.__checkVal] in self.ALLOWED_COMMAND_ADDITIONS:
-            self.__pos = self.fileContents.find(brackets[0], self.__endKywd, len(self.fileContents))
+            self.__pos = self.fileContents.find(
+                brackets[0], self.__endKywd, len(self.fileContents))
         else:
             self.__pos = self.__checkVal
 
@@ -102,7 +101,7 @@ class LatexFile():
         else:
             self.__bracketContents = ""
             self.__unpairedBracketCount = 0  # ensures only inside {} are detected
-            for i in range((self.__pos +1), len(self.fileContents)):
+            for i in range((self.__pos + 1), len(self.fileContents)):
                 if self.fileContents[i] == brackets[1] and self.__unpairedBracketCount == 0:
                     self.__endPos = self.__pos + len(self.__bracketContents)
                     self.__endPos += 1
@@ -123,31 +122,32 @@ class LatexFile():
             raise TypeError(
                 "Incorrectly formatted .tex document or misaligned startPos")
 
+
 class Package():
 
-    def __init__(self, name: str, options: list =[]) -> None:
-        self.name=name
-        self.options={}
+    def __init__(self, name: str, options: list = []) -> None:
+        self.name = name
+        self.options = {}
         for i in options:
-            splitOptions=i.split("=",2)
+            splitOptions = i.split("=", 2)
             splitOptions.append(None)
             self.options[splitOptions[0]] = splitOptions[1]
         print(self.options)
 
     def remove(self) -> None:
-        pass #TODO remove package
+        pass  # TODO remove package
 
     def removeOption(self, option: str) -> None:
-        pass #TODO remove option
+        pass  # TODO remove option
 
     def editOption(self, option: str, newVal) -> None:
-        pass #TODO edit option value
+        pass  # TODO edit option value
 
     def ifOption(self, option: str) -> bool:
-        pass #TODO See if option is present
+        pass  # TODO See if option is present
 
     def option(self, option: str) -> str:
-        pass #TODO return value of option
+        pass  # TODO return value of option
 
     def addOption(self, option: str, val) -> None:
-        pass #TODO add option
+        pass  # TODO add option
