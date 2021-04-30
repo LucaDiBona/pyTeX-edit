@@ -7,14 +7,15 @@ class LatexFile():
                                   "section", "subsection", "subsubsection"]
         # if one of these characters follows a command, it won't be read as part of the command
         self.ALLOWED_COMMAND_ADDITIONS = ["["]
+        # the value returned for a bracket if none exists
+        self.DEFAULT_BRACKET = {"pos": -1,
+                                "endPos": -1,
+                                "contents": ""}
         self.fileName = fileName
         self.__f = open(fileName, "a+")
         self.__f.seek(0)
         self.__fContentsI = self.__f.read()
         self.fileContents = self.__fContentsI
-        print(self.inBrackets(("{", "}"), "chapter", 0))
-        print(self.inBrackets(("{", "}"), "usepackage", 0))
-        print(self.inBrackets(("[", "]"), "usepackage", 0))
         self.updatePackages()
 
     def getStructure(self) -> list:
@@ -51,9 +52,16 @@ class LatexFile():
         while i <= len(self.fileContents):
             self.packageImport = self.inBrackets(("{", "}"), "usepackage", i)
             if self.packageImport["endPos"] >= 0:
-                if self.inBrackets(("[", "]"), "usepackage", i)["endPos"] > self.packageImport["pos"]:
-                    pass
-            i += 1
+                #there are options
+                self.options=self.inBrackets(("[", "]"), "usepackage", i)
+                if 0 < self.options["endPos"] < self.packageImport["pos"]:
+                    self.packages.append(Package(self.packageImport["contents"],(self.options["contents"].split(",")))) #TODO make more robust in case of comma in val
+                else:
+                    self.packages.append(Package(self.packageImport["contents"]))
+                i = self.packageImport["endPos"]
+
+            else:
+                break
 
     def getPackages(self) -> list:
         pass  # TODO output packages
@@ -93,11 +101,7 @@ class LatexFile():
             self.__pos = self.__checkVal
 
         if self.__pos == -1:
-            return({
-                "pos": -1,
-                "endPos": -1,
-                "contents": ""
-            })
+            return(self.DEFAULT_BRACKET)
         else:
             self.__bracketContents = ""
             self.__unpairedBracketCount = 0  # ensures only inside {} are detected
@@ -119,8 +123,10 @@ class LatexFile():
                     self.__bracketContents += self.fileContents[i]
 
             # Error raised if unpaired '{' or '}' present after startPos
-            raise TypeError(
-                "Incorrectly formatted .tex document or misaligned startPos")
+            if self.__unpairedBracketCount != 0:
+                raise TypeError(
+                    "Incorrectly formatted .tex document or misaligned startPos")
+            return(self.DEFAULT_BRACKET)
 
 
 class Package():
@@ -132,7 +138,6 @@ class Package():
             splitOptions = i.split("=", 2)
             splitOptions.append(None)
             self.options[splitOptions[0]] = splitOptions[1]
-        print(self.options)
 
     def remove(self) -> None:
         pass  # TODO remove package
