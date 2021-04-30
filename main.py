@@ -14,7 +14,7 @@ while running:
     elif command == "ls pkg":
         for i in x.getPackages():
             print(i.name())
-            print(i.options)
+            print(i.options())
     elif command == "geo":
         print(x.package("amsmath"))
     elif command == "add pkg a":

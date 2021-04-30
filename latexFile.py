@@ -168,11 +168,11 @@ class Package():
 
     def __init__(self, name: str, options: list = []) -> None:
         self.__name = name
-        self.options = {}
+        self.__options = {}
         for i in options:
             splitOptions = i.split("=", 2)
             splitOptions.append(None)
-            self.options[splitOptions[0]] = splitOptions[1]
+            self.__options[splitOptions[0]] = splitOptions[1]
 
     def name(self) -> str:
         """
@@ -193,10 +193,46 @@ class Package():
         self.__name = name
 
     def removeOption(self, option: str) -> None:
-        pass  # TODO remove option
+        """
+        Removes an option from a package, if it exists, else returns an error
+
+        Args:
+            option (str): the option to be removed
+
+        Raises:
+            TypeError: if no such option exists
+
+        """
+        if option in self.__options.keys():
+            self.__options.pop(option)
+        else:
+            raise TypeError("No such option")
+
+    def options(self) -> dict:
+        """
+        Getter for options
+
+        Returns:
+            dict: options
+        """
+        return(self.__options)
 
     def editOption(self, option: str, newVal) -> None:
-        pass  # TODO edit option value
+        """
+        Edits an option from a package, if it exists, else returns an error
+
+        Args:
+            option (str): the option to be changed
+            newVal ([type]): the new value of the option
+
+        Raises:
+            TypeError: if no such option exists
+        """
+        if option in self.__options.keys():
+            self.__options[option] = newVal
+        else:
+            raise TypeError("No such option")
+
 
     def ifOption(self, option: str) -> bool:
         pass  # TODO See if option is present
