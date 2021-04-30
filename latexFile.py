@@ -170,7 +170,7 @@ class Package():
         self.__name = name
         self.__options = {}
         for i in options:
-            splitOptions = i.split("=", 2)
+            splitOptions = i.split("=", 2) #TODO allow other splitting methods
             splitOptions.append(None)
             self.__options[splitOptions[0]] = splitOptions[1]
 
@@ -235,7 +235,16 @@ class Package():
 
 
     def ifOption(self, option: str) -> bool:
-        pass  # TODO See if option is present
+        """
+        Detects is an option is present
+
+        Args:
+            option (str): the option being tested
+
+        Returns:
+            bool: True is option present, false if not
+        """
+        return(option in self.__options.keys())
 
     def option(self, option: str) -> str:
         pass  # TODO return value of option
