@@ -86,7 +86,7 @@ class LatexFile():
             Package or None: the package, returns None if doesn't exist
         """
         for i in self.__packages:
-            if i.name == name:
+            if i.name() == name:
                 return(i)
         return(None)
 
@@ -104,7 +104,7 @@ class LatexFile():
             package (Package): the package to be added
         """
         for i, val in enumerate(self.__packages):
-            if val.name == package.name:
+            if val.name() == package.name():
                 self.__packages[i] = package
                 return(None)
         self.__packages.append(package)
@@ -167,15 +167,30 @@ class LatexFile():
 class Package():
 
     def __init__(self, name: str, options: list = []) -> None:
-        self.name = name
+        self.__name = name
         self.options = {}
         for i in options:
             splitOptions = i.split("=", 2)
             splitOptions.append(None)
             self.options[splitOptions[0]] = splitOptions[1]
 
-    def remove(self) -> None:
-        pass  # TODO remove package
+    def name(self) -> str:
+        """
+        getter for package name
+
+        Returns:
+            str: package name
+        """
+        return(self.__name)
+
+    def rename(self, name: str) -> None:
+        """
+        rename a package
+
+        Args:
+            name (str): new name
+        """
+        self.__name = name
 
     def removeOption(self, option: str) -> None:
         pass  # TODO remove option

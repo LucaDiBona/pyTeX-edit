@@ -13,7 +13,7 @@ while running:
         print(x.getStructure())
     elif command == "ls pkg":
         for i in x.getPackages():
-            print(i.name)
+            print(i.name())
             print(i.options)
     elif command == "geo":
         print(x.package("amsmath"))
