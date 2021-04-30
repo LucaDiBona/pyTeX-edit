@@ -21,3 +21,6 @@ while running:
         print(x.addPackage(y))
     elif command == "add pkg b":
         print(x.addPackage(z))
+    elif command == "e":
+        y.editOption("marmite","drink")
+        print(y.options())
