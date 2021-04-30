@@ -1,8 +1,8 @@
 from latexFile import LatexFile
-running=True
+running = True
 while running:
-    command=input("> ") #TODO Replace with reasonable TUI (curses maybe)
-    x=LatexFile("test.tex")
+    command = input("> ")  # TODO Replace with reasonable TUI (curses maybe)
+    x = LatexFile("test.tex")
 
-    if command=="kill":
+    if command == "kill" or command == "q":
         running = False
