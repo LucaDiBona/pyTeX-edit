@@ -3,15 +3,17 @@
 class LatexFile():
 
     def __init__(self, fileName: str) -> None:
-        self.__STRUCTURE_LAYER = {"title": None, "subSections": []}
         self.SECTION_HIERARCHY = ["chapter",
                                   "section", "subsection", "subsubsection"]
+        self.ALLOWED_COMMAND_ADDITIONS = ["["] # if one of these characters follows a command, it won't be read as part of the command
         self.fileName = fileName
         self.__f = open(fileName, "a+")
         self.__f.seek(0)
         self.__fContentsI = self.__f.read()
-        self.fileContents = self.__fContentsI.copy()
+        self.fileContents = self.__fContentsI
         print(self.inBrackets(("{","}"),"chapter",0))
+        print(self.inBrackets(("{","}"),"usepackage",0))
+        print(self.inBrackets(("[","]"),"usepackage",0))
         self.updatePackages()
 
 
@@ -43,15 +45,16 @@ class LatexFile():
 
     def updatePackages(self) -> None:
         """
-        updates self.packages
+        updates self.packages from self.fileContents
         """
         self.packages=[]
         i=0
-        while i <= len(self.fContents):
-            self.packageImport=self.inBrackets(("{","}","usepackage",i))
+        while i <= len(self.fileContents):
+            self.packageImport=self.inBrackets(("{","}"),"usepackage",i)
             if self.packageImport["endPos"] >=0:
                 if self.inBrackets(("[","]"),"usepackage",i)["endPos"] > self.packageImport["pos"]:
                     pass
+            i +=1
 
 
     def getPackages(self) -> list:
@@ -82,8 +85,13 @@ class LatexFile():
                 contents (str): the string between the opening and closing brackets
                 }
         """
-        self.__pos = self.__fContentsI.find(
-            ("\\"+keyword + brackets[0]), startPos, len(self.__fContentsI))
+        self.__endKywd = self.fileContents.find(
+            ("\\"+keyword), startPos, len(self.fileContents))
+        self.__checkVal=self.__endKywd + len(keyword) + 1
+        if self.fileContents[self.__checkVal] in self.ALLOWED_COMMAND_ADDITIONS:
+            self.__pos = self.fileContents.find(brackets[0], self.__endKywd, len(self.fileContents))
+        else:
+            self.__pos = self.__checkVal
 
         if self.__pos == -1:
             return({
@@ -94,8 +102,8 @@ class LatexFile():
         else:
             self.__bracketContents = ""
             self.__unpairedBracketCount = 0  # ensures only inside {} are detected
-            for i in range((self.__pos + len(keyword) + 2), len(self.__fContentsI)):
-                if self.__fContentsI[i] == brackets[1] and self.__unpairedBracketCount == 0:
+            for i in range((self.__pos +1), len(self.fileContents)):
+                if self.fileContents[i] == brackets[1] and self.__unpairedBracketCount == 0:
                     self.__endPos = self.__pos + len(self.__bracketContents)
                     self.__endPos += 1
                     return({
@@ -104,12 +112,12 @@ class LatexFile():
                         "contents": self.__bracketContents
                     })
                 else:
-                    if self.__fContentsI[i] == brackets[1]:
+                    if self.fileContents[i] == brackets[1]:
                         self.__unpairedBracketCount -= 1
-                    elif self.__fContentsI[i] == brackets[0]:
+                    elif self.fileContents[i] == brackets[0]:
                         self.__unpairedBracketCount += 1
 
-                    self.__bracketContents += self.__fContentsI[i]
+                    self.__bracketContents += self.fileContents[i]
 
             # Error raised if unpaired '{' or '}' present after startPos
             raise TypeError(
