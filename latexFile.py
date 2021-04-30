@@ -8,12 +8,9 @@ class LatexFile():
         self.__f.seek(0)
         self.__fContentsI = self.__f.read()
         self.structure = []  # structure containing a list of dictionaries, each with the title as a string and a list of dictionaries of the next layer
-        self.__currentDir = {
-            "pos": 0,
-            "contents": ""}
-        self.__pos = 0
-        while self.__currentDir[pos] != -1:
-            pass
+        for i, val in enumerate(self.SECTION_HIERARCHY):
+            for j in range(len(self.__fContentsI)):
+
 
     def inBrackets(self, keyword: str, startPos: int = 0) -> dict:
         """Finds words inside {} for next appropriate LaTeX command
