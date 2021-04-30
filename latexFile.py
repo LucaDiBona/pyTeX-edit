@@ -47,7 +47,7 @@ class LatexFile():
                     j += 1
         return(self.structure)
 
-    def updatePackages(self) -> None:  #TODO rewrite to make less specific: don't just deal with packages, but all commands & environments
+    def updatePackages(self) -> None:
         """
         updates self.packages from self.fileContents
         """
@@ -66,6 +66,10 @@ class LatexFile():
 
             else:
                 break
+
+    def updateCommands(self, command: str) -> None:
+        pass #TODO get this to work
+             #TODO do the same with environments
 
     def getPackages(self) -> list:
         """
