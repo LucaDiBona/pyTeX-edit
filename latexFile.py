@@ -47,7 +47,7 @@ class LatexFile():
                     j += 1
         return(self.structure)
 
-    def updatePackages(self) -> None:
+    def updatePackages(self) -> None:  #TODO rewrite to make less specific: don't just deal with packages, but all commands & environments
         """
         updates self.packages from self.fileContents
         """
@@ -164,6 +164,29 @@ class LatexFile():
                     "Incorrectly formatted .tex document or misaligned startPos")
             return(self.DEFAULT_BRACKET)
 
+class Command():
+
+    def __init__(self, name: str, options: list = []) -> None:
+        self.__name = name
+        self.__options = options
+
+    def name(self) -> str:
+        """
+        getter for command/environment name
+
+        Returns:
+            str: command/environment name
+        """
+        return(self.__name)
+
+    def rename(self, name: str) -> None:
+        """
+        rename a command/environment
+
+        Args:
+            name (str): new name
+        """
+        self.__name = name
 
 class Package():
 
@@ -174,24 +197,6 @@ class Package():
             splitOptions = i.split("=", 2) #TODO allow other splitting methods
             splitOptions.append(None)
             self.__options[splitOptions[0]] = splitOptions[1]
-
-    def name(self) -> str:
-        """
-        getter for package name
-
-        Returns:
-            str: package name
-        """
-        return(self.__name)
-
-    def rename(self, name: str) -> None:
-        """
-        rename a package
-
-        Args:
-            name (str): new name
-        """
-        self.__name = name
 
     def removeOption(self, option: str) -> None:
         """
@@ -248,7 +253,28 @@ class Package():
         return(option in self.__options.keys())
 
     def option(self, option: str) -> str:
-        pass  # TODO return value of option
+        """
+        Getter for individual options
+
+        Args:
+            option (str): the option to be retrieved
+
+        Raises:
+            TypeError: if no such object exists
+
+        Returns:
+            str: the value of the option
+        """
+        if option in self.__options.keys():
+            return(self.__options[option])
+        else:
+            raise TypeError("No such option")
 
     def addOption(self, option: str, val) -> None:
-        pass  # TODO add option
+        """Adds new option and value
+
+        Args:
+            option (str): name of option
+            val (str or None): the value
+        """
+        self.__options[option] = val
