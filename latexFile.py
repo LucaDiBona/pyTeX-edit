@@ -18,6 +18,9 @@ class LatexFile():
         self.fileContents = self.__fContentsI
         self.updatePackages()
 
+    def updateFile(self) -> None:
+        pass #TODO update file based on changes
+
     def getStructure(self) -> list:
         """
         Getter for the structure of the LaTeX file
@@ -93,8 +96,19 @@ class LatexFile():
     def splitPackages(self) -> None:
         pass  # TODO split packages into separate \usepackages
 
-    def addPackage(self, name: str, options=None) -> None:
-        pass  # TODO add package
+    def addPackage(self, package: object) -> None:
+        """
+        adds a package. if already present it replaces the options
+
+        Args:
+            package (Package): the package to be added
+        """
+        for i, val in enumerate(self.__packages):
+            if val.name == package.name:
+                self.__packages[i] = package
+                return(None)
+        self.__packages.append(package)
+        print(self.__packages)
 
     def inBrackets(self, brackets: tuple, keyword: str, startPos: int = 0) -> dict:
         """
