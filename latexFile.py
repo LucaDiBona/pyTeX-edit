@@ -188,15 +188,16 @@ class Command():
         """
         self.__name = name
 
-class Package():
+class Package(Command):
 
     def __init__(self, name: str, options: list = []) -> None:
-        self.__name = name
+        super().__init__(name)
         self.__options = {}
         for i in options:
             splitOptions = i.split("=", 2) #TODO allow other splitting methods
             splitOptions.append(None)
             self.__options[splitOptions[0]] = splitOptions[1]
+
 
     def removeOption(self, option: str) -> None:
         """
