@@ -1,4 +1,5 @@
 # TODO Deal with \DocumentClass
+# TODO Deal with environments
 # TODO Deal with author, title, date etc
 class LatexFile():
 
