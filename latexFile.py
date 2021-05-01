@@ -122,7 +122,6 @@ class LatexFile():
                 self.__packages[i] = package
                 return(None)
         self.__packages.append(package)
-        print(self.__packages)
 
     def inBrackets(self, brackets: tuple, keyword: str, startPos: int = 0) -> dict:
         """
@@ -185,27 +184,39 @@ class LatexFile():
                 unpairedBrackets = 0
                 currentParam = ""
                 outputList = []
-                for j in paramText:
-                    if j in open:
+                log = [] # list of starting positions
+                for j, val in enumerate(paramText):
+                    if val in open:
                         unpairedBrackets += 1
-                    elif j in close:
+                        log.append(j)
+                    elif val in close:
                         unpairedBrackets -= 1
                         if unpairedBrackets == 0:
                             outputList.append(currentParam[1:])
                             currentParam = ""
                     if unpairedBrackets > 0:
-                        currentParam += j
-                return(outputList)
+                        currentParam += val
+                return(outputList,log)
 
-
-            if param[-1] in self.ADDED_CC_TWO:
-                argOrder = ["a"]
-            else:
-                argOrder = ["o"]
-
-            args = paramParse(self, param, self.CATCODES[1], self.CATCODES[2])
-            optArgs = paramParse(
+            args, argLog = paramParse(self, param, self.CATCODES[1], self.CATCODES[2])
+            optArgs, optLog = paramParse(
                 self, param, self.ADDED_CC_ONE, self.ADDED_CC_TWO)
+
+            #deduces order of arguments
+            argOrder =[]
+            while (argLog != []) or (optLog != []):
+                if argLog == []:
+                    argOrder.append("o")
+                    optLog.pop(0)
+                elif optLog == []:
+                    argOrder.append("a")
+                    argLog.pop(0)
+                elif argLog[0] < optLog[0]:
+                    argOrder.append("a")
+                    argLog.pop(0)
+                else:
+                    argOrder.append("o")
+                    optLog.pop(0)
 
             return(Command(text[1:], pos, args, optArgs, argOrder))
 
@@ -313,7 +324,6 @@ class Command():
                 argOrder.pop(i)
 
         self.__argOrder = argOrder
-        print("")
 
     def name(self) -> str:
         """
