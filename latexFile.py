@@ -107,59 +107,6 @@ class LatexFile():
                 return(None)
         self.__packages.append(package)
 
-    def inBrackets(self, brackets: tuple, keyword: str, startPos: int = 0) -> dict:
-        """
-        Finds words inside brackets for next appropriate LaTeX command
-
-        Args:
-            brackets Tuple(str,str): opening and closing brackets
-            keyword (str): keyword to look for
-            startPos (int): the initial position to search from, defaults to 0
-
-        Returns:
-            dict: {
-                pos (int): the position of the opening bracket
-                endPos (int): the position of the closing bracket
-                contents (str): the string between the opening and closing brackets
-                }
-        """
-        self.__endKywd = self.fileContents.find(
-            ("\\"+keyword), startPos, len(self.fileContents))
-        self.__checkVal = self.__endKywd + len(keyword) + 1
-        if self.fileContents[self.__checkVal] in self.ALLOWED_COMMAND_ADDITIONS:
-            self.__pos = self.fileContents.find(
-                brackets[0], self.__endKywd, len(self.fileContents))
-        else:
-            self.__pos = self.__checkVal
-
-        if self.__pos == -1:
-            return(self.DEFAULT_BRACKET)
-        else:
-            self.__bracketContents = ""
-            self.__unpairedBracketCount = 0  # ensures only inside {} are detected
-            for i in range((self.__pos + 1), len(self.fileContents)):
-                if self.fileContents[i] == brackets[1] and self.__unpairedBracketCount == 0:
-                    self.__endPos = self.__pos + len(self.__bracketContents)
-                    self.__endPos += 1
-                    return({
-                        "pos": self.__pos,
-                        "endPos": self.__endPos,
-                        "contents": self.__bracketContents
-                    })
-                else:
-                    if self.fileContents[i] == brackets[1]:
-                        self.__unpairedBracketCount -= 1
-                    elif self.fileContents[i] == brackets[0]:
-                        self.__unpairedBracketCount += 1
-
-                    self.__bracketContents += self.fileContents[i]
-
-            # Error raised if unpaired '{' or '}' present after startPos
-            if self.__unpairedBracketCount != 0:
-                raise TypeError(
-                    "Incorrectly formatted .tex document or misaligned startPos")
-            return(self.DEFAULT_BRACKET)
-
     def parse(self) -> list:
 
         def genCommand(self, text: str, pos: int, param=None) -> object:
