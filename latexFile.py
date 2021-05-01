@@ -185,7 +185,6 @@ class LatexFile():
             else:
                 argOrder = "o"
 
-
             return(Command(text[1:], 0))
 
         """
@@ -241,7 +240,8 @@ class LatexFile():
                 else:
                     currentCommands[-2] += currentCommands[-1]
                     currentCommands[-3] += currentCommands[-2]
-                    commands.append(genCommand(self, currentCommands[-1], currentCommands[-2]))
+                    commands.append(genCommand(
+                        self, currentCommands[-1], currentCommands[-2]))
                     currentCommands.pop()
                     currentCommands.pop()
                     mode -= 2
@@ -535,7 +535,7 @@ class Command():
                       "o": options first
                       "a": arguments first
         """
-        self.__argOrder=val
+        self.__argOrder = val
 
 
 class Package(Command):
