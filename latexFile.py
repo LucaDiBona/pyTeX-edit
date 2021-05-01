@@ -198,9 +198,9 @@ class LatexFile():
                 return(outputList)
 
             if param[-1] in self.ADDED_CC_TWO:
-                argOrder = "a"
+                argOrder = ["a"]
             else:
-                argOrder = "o"
+                argOrder = ["o"]
 
             args = paramParse(self, param, self.CATCODES[1], self.CATCODES[2])
             optArgs = paramParse(
@@ -284,12 +284,33 @@ class LatexFile():
 
 class Command():
 
-    def __init__(self, name: str, pos: int, args: list = [], optArgs: list = [], argOrder: str = "o") -> None:
+    def __init__(self, name: str, pos: int, args: list = [], optArgs: list = [], argOrder: list = []) -> None:
         self.__name = name
         self.__pos = pos
         self.__args = args
         self.__optArgs = optArgs
+
+        # creates full arg order list
+        if "o" not in argOrder:
+            argOrder += "o"
+        if "a" not in argOrder:
+            argOrder += "a"
+        while (len([x for x in argOrder if x == "o"]) < len(optArgs)) or (len([x for x in argOrder if x == "a"]) < len(args)):
+            argOrder += argOrder
+        optCount = 0
+        argCount = 0
+        for i, val in enumerate(argOrder):
+            if val == "o":
+                optCount += 1
+            elif val == "a":
+                argCount += 1
+            else:
+                raise ValueError('The value of argOrder must be "o" or "a"')
+            if (optCount > len(optArgs)) or (argCount > len(args)):
+                argOrder.pop(i)
+
         self.__argOrder = argOrder
+        print("")
 
     def name(self) -> str:
         """
