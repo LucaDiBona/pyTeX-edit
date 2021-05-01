@@ -20,7 +20,7 @@ class LatexFile():
         self.updatePackages()
 
     def updateFile(self) -> None:
-        pass #TODO update file based on changes
+        pass  # TODO update file based on changes
 
     def getStructure(self) -> list:
         """
@@ -56,20 +56,23 @@ class LatexFile():
         while i <= len(self.fileContents):
             self.packageImport = self.inBrackets(("{", "}"), "usepackage", i)
             if self.packageImport["endPos"] >= 0:
-                #there are options
-                self.options=self.inBrackets(("[", "]"), "usepackage", i)
+                # there are options
+                self.options = self.inBrackets(("[", "]"), "usepackage", i)
                 if 0 < self.options["endPos"] < self.packageImport["pos"]:
-                    self.__packages.append(Package(self.packageImport["contents"],(self.options["contents"].split(",")))) #TODO make more robust in case of comma in val
+                    # TODO make more robust in case of comma in val
+                    self.__packages.append(
+                        Package(self.packageImport["contents"], (self.options["contents"].split(","))))
                 else:
-                    self.__packages.append(Package(self.packageImport["contents"]))
+                    self.__packages.append(
+                        Package(self.packageImport["contents"]))
                 i = self.packageImport["endPos"]
 
             else:
                 break
 
     def updateCommands(self, command: str) -> None:
-        pass #TODO get this to work
-             #TODO do the same with environments
+        pass  # TODO get this to work
+        # TODO do the same with environments
 
     def getPackages(self) -> list:
         """
@@ -168,11 +171,15 @@ class LatexFile():
                     "Incorrectly formatted .tex document or misaligned startPos")
             return(self.DEFAULT_BRACKET)
 
+
 class Command():
 
-    def __init__(self, name: str, options: list = []) -> None:
+    def __init__(self, name: str, pos: int, args: list = [], optArgs: list = [], argOrder: str = "o") -> None:
         self.__name = name
-        self.__options = options
+        self.__pos = pos
+        self.__args = args
+        self.__optArgs = optArgs
+        self.__argOrder = argOrder
 
     def name(self) -> str:
         """
@@ -192,16 +199,125 @@ class Command():
         """
         self.__name = name
 
+    def pos(self, mode: str = "s", index: int = 0) -> int:
+        """
+        Gets the position of certain character
+
+        Args:
+            mode (str, optional): "s": The start of the command (eg '\')
+                                  "e": The end of the command (eg '}')
+                                  "sa": The start of the argument (eg '{'})
+                                  "so": The start of the option (eg '[')
+                                  "ea": The end of the argument (eg '}')
+                                  "eo": The end of the option (eg ']')
+                                   Defaults to "s".
+            index (int, optional): The index if the item being considered in the list of arguments. Relative indices supported (with -ve vals). Defaults to 0.
+
+        Returns:
+            int: the position of the desired character
+        """
+
+        def length(self, list: list):
+            length = 0
+            for i in list:
+                length += 2
+                length += len(i)
+            return(length)
+
+        # calculates position based on arguments by summing up the lengths of the things prior to the position and adding this to the position of the command
+        if mode == "s":
+            return(self.__pos)
+        elif mode == "e":
+            addLen = len(self.__name)
+            addLen += length(self, self.__args)
+            addLen += length(self, self.__optArgs)
+            return(self.__pos + addLen)
+        elif mode == "so" and self.__argOrder == "o":
+            addLen = len(self.__name)
+            addLen += 1
+            curList = self.__optArgs.copy()
+            # removes all items in list from the last, up to and including the one being considered
+            while len(curList) >= (index+1):
+                curList.pop()
+            addLen += length(self, curList)
+            return(self.__pos + addLen)
+        elif mode == "sa" and self.__argOrder == "a":
+            addLen = len(self.__name)
+            addLen += 1
+            curlist = self.__args.copy()
+            # removes all items in list from the last, up to and including the one being considered
+            while len(curlist) >= (index+1):
+                curlist.pop()
+            addLen += length(self, curlist)
+            return(self.__pos + addLen)
+        elif mode == "eo" and self.__argOrder == "o":
+            addLen = len(self.__name)
+            curList = self.__optArgs.copy()
+            # removes all items in list from the last, up to but not including the one being considered
+            while len(curList) > (index+1):
+                curList.pop()
+            addLen += length(self, curList)
+            return(self.__pos + addLen)
+        elif mode == "ea" and self.__argOrder == "a":
+            addLen = len(self.__name)
+            curList = self.__args.copy()
+            # removes all items in list from the last, up to but not including the one being considered
+            while len(curList) > (index+1):
+                curList.pop()
+            addLen += length(self, curList)
+            return(self.__pos + addLen)
+        elif mode == "so" and self.__argOrder == "a":
+            addLen = len(self.__name)
+            addLen += length(self, self.__args)
+            addLen += 1
+            curList = self.__optArgs.copy()
+            # removes all items in list from the last, up to and including the one being considered
+            while len(curList) >= (index+1):
+                curList.pop()
+            addLen += length(self, curList)
+            return(self.__pos + addLen)
+        elif mode == "sa" and self.__argOrder == "o":
+            addLen = len(self.__name)
+            addLen += length(self, self.__optArgs)
+            addLen += 1
+            curlist = self.__args.copy()
+            # removes all items in list from the last, up to and including the one being considered
+            while len(curlist) >= (index+1):
+                curlist.pop()
+            addLen += length(self, curlist)
+            return(self.__pos + addLen)
+        elif mode == "eo" and self.__argOrder == "a":
+            addLen = len(self.__name)
+            addLen += length(self, self.__args)
+            curList = self.__optArgs.copy()
+            # removes all items in list from the last, up to but not including the one being considered
+            while len(curList) > (index+1):
+                curList.pop()
+            addLen += length(self, curList)
+            return(self.__pos + addLen)
+        elif mode == "ea" and self.__argOrder == "o":
+            addLen = len(self.__name)
+            addLen += length(self, self.__optArgs)
+            curList = self.__args.copy()
+            # removes all items in list from the last, up to but not including the one being considered
+            while len(curList) > (index+1):
+                curList.pop()
+            addLen += length(self, curList)
+            return(self.__pos + addLen)
+        else:
+            raise ValueError("Invalid mode or argOrder")
+
+
 class Package(Command):
 
     def __init__(self, name: str, options: list = []) -> None:
-        super().__init__(name)
+        super().__init__(name, 0)  # TODO fix this
         self.__options = {}
         for i in options:
-            splitOptions = i.split("=", 2) #TODO allow other splitting methods
+            # TODO allow other splitting methods
+            splitOptions = i.split("=", 2)
             splitOptions.append(None)
             self.__options[splitOptions[0]] = splitOptions[1]
-
 
     def removeOption(self, option: str) -> None:
         """
@@ -243,7 +359,6 @@ class Package(Command):
             self.__options[option] = newVal
         else:
             raise TypeError("No such option")
-
 
     def ifOption(self, option: str) -> bool:
         """
