@@ -179,7 +179,7 @@ class LatexFile():
 
     def parse(self) -> list:
 
-        def genCommand(self, text: str, param=None) -> object:
+        def genCommand(self, text: str, pos: int, param=None) -> object:
 
             def paramParse(self, paramText: str, open: list, close: list) -> list:
                 unpairedBrackets = 0
@@ -197,6 +197,7 @@ class LatexFile():
                         currentParam += j
                 return(outputList)
 
+
             if param[-1] in self.ADDED_CC_TWO:
                 argOrder = ["a"]
             else:
@@ -206,7 +207,7 @@ class LatexFile():
             optArgs = paramParse(
                 self, param, self.ADDED_CC_ONE, self.ADDED_CC_TWO)
 
-            return(Command(text[1:], 0, args, optArgs, argOrder))
+            return(Command(text[1:], pos, args, optArgs, argOrder))
 
         """
         Modes:
@@ -218,7 +219,8 @@ class LatexFile():
                 5: command in parameter in parameter mode
                 ...
         """
-        mode = 0  # text
+        mode = 0
+        pos = 0
         commands = []
         currentCommands = [""]
         for i, val in enumerate(self.fileContents):
@@ -232,11 +234,12 @@ class LatexFile():
                 if mode % 2 == 0:
                     mode += 1  # command
                     currentCommands.append("")
+                    pos = i
                 # if in command mode, process previous command
                 else:
                     #! IDK if this will work
                     currentCommands[-2] += currentCommands[-1]
-                    commands.append(genCommand(self, currentCommands[-1]))
+                    commands.append(genCommand(self, currentCommands[-1], pos))
                     currentCommands.pop()
 
             # continue to add to current command
@@ -261,7 +264,7 @@ class LatexFile():
                 elif len(self.fileContents) > (i+1):
                     if not(self.fileContents[i+1] in (self.CATCODES[1] + self.ADDED_CC_ONE)):
                         commands.append(genCommand(
-                            self, currentCommands[-2], (currentCommands[-1]+val)))
+                            self, currentCommands[-2], pos, (currentCommands[-1]+val)))
                         currentCommands[-2] += currentCommands[-1]
                         currentCommands[-3] += currentCommands[-2]
                         currentCommands.pop()
@@ -274,7 +277,7 @@ class LatexFile():
             else:
                 if mode % 2 == 1:
                     currentCommands[-2] += currentCommands[-1]
-                    commands.append(genCommand(self, currentCommands[-1]))
+                    commands.append(genCommand(self, currentCommands[-1], pos))
                     currentCommands.pop()
                     mode -= 1
 
@@ -348,7 +351,7 @@ class Command():
             int: the position of the desired character
         """
 
-        def length(self, list: list):
+        def length(self, list: list):  # TODO rewrite to take into account optArgs as list
             length = 0
             for i in list:
                 length += 2
