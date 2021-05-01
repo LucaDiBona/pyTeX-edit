@@ -17,6 +17,8 @@ class LatexFile():
                                 "contents": ""}
         self.CATCODES = [["\\"], ["{"], ["}"], ["$"], ["&"], ["\n"], ["#"],
                          ["^"], ["_"], [], [" ", " "], ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], [], [], ["%"], []]  # TODO use full unicode set L & M for letter codes (possibly from https://github.com/garabik/unicode) - maybe make this optional to reduce load times
+        #commands that import packages
+        self.USE_PACKAGE = ["usepackage","RequirePackage"]
         self.fileName = fileName
         self.__f = open(fileName, "a+")
         self.__f.seek(0)
@@ -46,28 +48,17 @@ class LatexFile():
                     self.structure.append({"layer": i,"title": j.getArg(0), "pos": j.pos("s")})
         return(self.structure)
 
-    def updatePackages(self) -> None:
+    def updatePackages(self) -> None: #TODO allow multiple packages in one cmd
         """
-        updates self.packages from self.fileContents
+        updates self.__packages from self.__commands
         """
         self.__packages = []
-        i = 0
-        while i <= len(self.fileContents):
-            self.packageImport = self.inBrackets(("{", "}"), "usepackage", i)
-            if self.packageImport["endPos"] >= 0:
-                # there are options
-                self.options = self.inBrackets(("[", "]"), "usepackage", i)
-                if 0 < self.options["endPos"] < self.packageImport["pos"]:
-                    # TODO make more robust in case of comma in val
-                    self.__packages.append(
-                        Package(self.packageImport["contents"], (self.options["contents"].split(","))))
+        for i in self.__commands:
+            if i.name() in self.USE_PACKAGE:
+                if i.optCount() > 0:
+                    self.__packages.append(Package(i.getArg(0),i.getOpt(0).split(",")))#TODO allow comma in value somehow?
                 else:
-                    self.__packages.append(
-                        Package(self.packageImport["contents"]))
-                i = self.packageImport["endPos"]
-
-            else:
-                break
+                    self.__packages.append(Package(i.getArg(0)))
 
     def updateCommands(self, command: str) -> None:
         pass  # TODO get this to work
@@ -502,12 +493,21 @@ class Command():
 
     def appendArg(self, val: str) -> None:
         """
-        Appends and argument
+        Appends an argument
 
         Args:
             val (str): argument to be appended
         """
         self.__args.append(val)
+
+    def argCount(self) -> int:
+        """
+        Gets the number of arguments
+
+        Returns:
+            int: the number of arguments
+        """
+        return(len(self.__args))
 
     def getOpts(self) -> list:
         """
@@ -559,12 +559,21 @@ class Command():
 
     def appendOpt(self, val: str) -> None:
         """
-        Appends and option
+        Appends an option
 
         Args:
             val (str): option to be appended
         """
         self.__optArgs.append(val)
+
+    def optCount(self) -> int:
+        """
+        Gets the number of options
+
+        Returns:
+            int: the number of options
+        """
+        return(len(self.__optArgs))
 
     def getArgOrder(self) -> str:
         """
