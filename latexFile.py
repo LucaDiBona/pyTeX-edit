@@ -22,7 +22,7 @@ class LatexFile():
         self.__f.seek(0)
         self.__fContentsI = self.__f.read()
         self.fileContents = self.__fContentsI
-        self.commands = self.parse()
+        self.__commands = self.parse()
         self.updatePackages()
 
     def updateFile(self) -> None:
@@ -41,16 +41,9 @@ class LatexFile():
         """
         self.structure = []
         for i, val in enumerate(self.SECTION_HIERARCHY):
-            j = 0
-            # iterates through current string, finding all subsections
-            while j <= len(self.fileContents):
-                self.currentDict = self.inBrackets(("{", "}"), val, j)
-                if self.currentDict["endPos"] >= 0:
-                    self.structure.append(
-                        {"layer": i, "title": self.currentDict["contents"], "pos": self.currentDict["pos"]})
-                    j = self.currentDict["endPos"]
-                else:
-                    j += 1
+            for j in self.__commands:
+                if j.name() == val:
+                    self.structure.append({"layer": i,"title": j.getArg(0), "pos": j.pos("s")})
         return(self.structure)
 
     def updatePackages(self) -> None:
