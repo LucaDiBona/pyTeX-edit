@@ -22,7 +22,7 @@ class LatexFile():
         self.__f.seek(0)
         self.__fContentsI = self.__f.read()
         self.fileContents = self.__fContentsI
-        self.parse()
+        self.commands = self.parse()
         self.updatePackages()
 
     def updateFile(self) -> None:
@@ -180,12 +180,33 @@ class LatexFile():
     def parse(self) -> list:
 
         def genCommand(self, text: str, param=None) -> object:
+
+            def paramParse(self, paramText: str, open: list, close: list) -> list:
+                unpairedBrackets = 0
+                currentParam = ""
+                outputList = []
+                for j in paramText:
+                    if j in open:
+                        unpairedBrackets += 1
+                    elif j in close:
+                        unpairedBrackets -= 1
+                        if unpairedBrackets == 0:
+                            outputList.append(currentParam[1:])
+                            paramText = ""
+                    if unpairedBrackets > 0:
+                        currentParam += j
+                return(outputList)
+
             if param[-1] in self.ADDED_CC_TWO:
                 argOrder = "a"
             else:
                 argOrder = "o"
 
-            return(Command(text[1:], 0))
+            args = paramParse(self, param, self.CATCODES[1], self.CATCODES[2])
+            optArgs = paramParse(
+                self, param, self.ADDED_CC_ONE, self.ADDED_CC_TWO)
+
+            return(Command(text[1:], 0, args, optArgs, argOrder))
 
         """
         Modes:
@@ -200,10 +221,10 @@ class LatexFile():
         mode = 0  # text
         commands = []
         currentCommands = [""]
-        for i in self.fileContents:
+        for i, val in enumerate(self.fileContents):
 
             # start new command
-            if i in self.CATCODES[0]:  # TODO deal with \\ special case
+            if val in self.CATCODES[0]:  # TODO deal with \\ special case
                 # TODO deal with single char commands
                 # TODO deal with left/right delimiter pairs
                 # TODO deal with \a= etc in tabbed environments
@@ -219,35 +240,39 @@ class LatexFile():
                     currentCommands.pop()
 
             # continue to add to current command
-            elif i in self.CATCODES[11]:
+            elif val in self.CATCODES[11]:
                 pass
 
             # start looking for parameters
-            elif i in self.CATCODES[1]:
+            elif val in self.CATCODES[1]:
                 # if in command, go to next parameter
                 if mode % 2 == 1:  # TODO deal with \{ command
                     mode += 1  # parameter
                     currentCommands.append("")
                 # if in parameter/text mode, increment unpaired brackets
 
-            elif i in self.ADDED_CC_ONE and mode % 2 == 1:
+            elif val in self.ADDED_CC_ONE and mode % 2 == 1:
                 mode += 1
                 currentCommands.append("")
 
-            elif i in self.CATCODES[2]:
+            elif val in self.CATCODES[2]:
                 if mode % 2 == 1:
                     pass  # TODO deal with \} and \right}
-                else:
-                    currentCommands[-2] += currentCommands[-1]
-                    currentCommands[-3] += currentCommands[-2]
-                    commands.append(genCommand(
-                        self, currentCommands[-1], currentCommands[-2]))
-                    currentCommands.pop()
-                    currentCommands.pop()
-                    mode -= 2
+                elif len(self.fileContents) > (i+1):
+                    print(self.fileContents)
+                    print(self.fileContents[i])
+                    print(self.fileContents[i+1])
+                    if not(self.fileContents[i+1] in self.CATCODES[1] or self.ADDED_CC_ONE):
+                        commands.append(genCommand(
+                            self, currentCommands[-2], (currentCommands[-1]+val)))
+                        currentCommands[-2] += currentCommands[-1]
+                        currentCommands[-3] += currentCommands[-2]
+                        currentCommands.pop()
+                        currentCommands.pop()
+                        mode -= 2
 
             # invalid char
-            elif i in self.CATCODES[15]:
+            elif val in self.CATCODES[15]:
                 raise ValueError(".tex file contains and invalid character")
             else:
                 if mode % 2 == 1:
@@ -256,7 +281,8 @@ class LatexFile():
                     currentCommands.pop()
                     mode -= 1
 
-            currentCommands[mode] += i
+            currentCommands[mode] += val
+        return(commands)
 
 
 class Command():
