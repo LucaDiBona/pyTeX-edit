@@ -372,6 +372,62 @@ class Command():
         """
         self.__args.append(val)
 
+    def getOpts(self) -> list:
+        """
+        Getter for the list of options
+
+        Returns:
+            list: list of all options
+        """
+        return(self.__optArgs)
+
+    def getOpt(self, index: int) -> str:
+        """
+        Getter for an individual option
+
+        Args:
+            index (int): index of option
+
+        Returns:
+            str: value of option
+        """
+        return(self.__optArgs[index])
+
+    def editOpt(self, index: int, newVal: str) -> None:
+        """
+        Sets the value of a specific option
+
+        Args:
+            index (int): index of option
+            newVal (str): new value of option
+        """
+        self.__optArgs[index] = newVal
+
+    def removeOpt(self, index: int = -1) -> None:
+        """
+        Removes an option
+
+        Args:
+            index (int): index of option. Defaults to last
+        """
+        self.__optArgs.pop(index)
+
+    def insertOpt(self, index: int, val: str) -> None:
+        """
+        Args:
+            index (int, optional): index for option to be placed at.
+            val (str): the value of the option
+        """
+        self.__optArgs.insert(index,val)
+
+    def appendOpt(self, val: str) -> None:
+        """
+        Appends and option
+
+        Args:
+            val (str): option to be appended
+        """
+        self.__optArgs.append(val)
 
     #TODO as above, but for options
 
