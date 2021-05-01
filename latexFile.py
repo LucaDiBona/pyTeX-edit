@@ -192,7 +192,7 @@ class LatexFile():
                         unpairedBrackets -= 1
                         if unpairedBrackets == 0:
                             outputList.append(currentParam[1:])
-                            paramText = ""
+                            currentParam = ""
                     if unpairedBrackets > 0:
                         currentParam += j
                 return(outputList)
@@ -259,10 +259,7 @@ class LatexFile():
                 if mode % 2 == 1:
                     pass  # TODO deal with \} and \right}
                 elif len(self.fileContents) > (i+1):
-                    print(self.fileContents)
-                    print(self.fileContents[i])
-                    print(self.fileContents[i+1])
-                    if not(self.fileContents[i+1] in self.CATCODES[1] or self.ADDED_CC_ONE):
+                    if not(self.fileContents[i+1] in (self.CATCODES[1] + self.ADDED_CC_ONE)):
                         commands.append(genCommand(
                             self, currentCommands[-2], (currentCommands[-1]+val)))
                         currentCommands[-2] += currentCommands[-1]
