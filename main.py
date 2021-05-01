@@ -6,6 +6,7 @@ z= Package("foo",["cheese"])
 cmd = Command("testcommand",0,["arg","uments"],["Opt"])
 
 print([",".join([])])
+print("\#")
 
 while running:
     command = input("> ")  # TODO Replace with reasonable TUI (curses maybe)

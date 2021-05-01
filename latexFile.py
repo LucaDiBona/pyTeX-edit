@@ -8,15 +8,21 @@ class LatexFile():
                                   "section", "subsection", "subsubsection"]
         # if one of these characters follows a command, it won't be read as part of the command
         self.ALLOWED_COMMAND_ADDITIONS = ["["]
+        # treated as cc one/two for some purposes
+        self.ADDED_CC_ONE = ["["]
+        self.ADDED_CC_TWO = ["]"]
         # the value returned for a bracket if none exists
         self.DEFAULT_BRACKET = {"pos": -1,
                                 "endPos": -1,
                                 "contents": ""}
+        self.CATCODES = [["\\"], ["{"], ["}"], ["$"], ["&"], ["\n"], ["#"],
+                         ["^"], ["_"], [], [" ", " "], ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], [], [], ["%"], []]  # TODO use full unicode set L & M for letter codes (possibly from https://github.com/garabik/unicode) - maybe make this optional to reduce load times
         self.fileName = fileName
         self.__f = open(fileName, "a+")
         self.__f.seek(0)
         self.__fContentsI = self.__f.read()
         self.fileContents = self.__fContentsI
+        self.parse()
         self.updatePackages()
 
     def updateFile(self) -> None:
@@ -171,6 +177,87 @@ class LatexFile():
                     "Incorrectly formatted .tex document or misaligned startPos")
             return(self.DEFAULT_BRACKET)
 
+    def parse(self) -> list:
+
+        def genCommand(self, text: str, param=None) -> object:
+            if param[-1] in self.ADDED_CC_TWO:
+                argOrder = "a"
+            else:
+                argOrder = "o"
+
+
+            return(Command(text[1:], 0))
+
+        """
+        Modes:
+                0: text mode
+                1: command mode
+                2: parameter mode
+                3: command in parameter mode
+                4: parameter in parameter mode
+                5: command in parameter in parameter mode
+                ...
+        """
+        mode = 0  # text
+        commands = []
+        currentCommands = [""]
+        for i in self.fileContents:
+
+            # start new command
+            if i in self.CATCODES[0]:  # TODO deal with \\ special case
+                # TODO deal with single char commands
+                # TODO deal with left/right delimiter pairs
+                # TODO deal with \a= etc in tabbed environments
+                # if in text mode, switch to scan mode
+                if mode % 2 == 0:
+                    mode += 1  # command
+                    currentCommands.append("")
+                # if in command mode, process previous command
+                else:
+                    #! IDK if this will work
+                    currentCommands[-2] += currentCommands[-1]
+                    commands.append(genCommand(self, currentCommands[-1]))
+                    currentCommands.pop()
+
+            # continue to add to current command
+            elif i in self.CATCODES[11]:
+                pass
+
+            # start looking for parameters
+            elif i in self.CATCODES[1]:
+                # if in command, go to next parameter
+                if mode % 2 == 1:  # TODO deal with \{ command
+                    mode += 1  # parameter
+                    currentCommands.append("")
+                # if in parameter/text mode, increment unpaired brackets
+
+            elif i in self.ADDED_CC_ONE and mode % 2 == 1:
+                mode += 1
+                currentCommands.append("")
+
+            elif i in self.CATCODES[2]:
+                if mode % 2 == 1:
+                    pass  # TODO deal with \} and \right}
+                else:
+                    currentCommands[-2] += currentCommands[-1]
+                    currentCommands[-3] += currentCommands[-2]
+                    commands.append(genCommand(self, currentCommands[-1], currentCommands[-2]))
+                    currentCommands.pop()
+                    currentCommands.pop()
+                    mode -= 2
+
+            # invalid char
+            elif i in self.CATCODES[15]:
+                raise ValueError(".tex file contains and invalid character")
+            else:
+                if mode % 2 == 1:
+                    currentCommands[-2] += currentCommands[-1]
+                    commands.append(genCommand(self, currentCommands[-1]))
+                    currentCommands.pop()
+                    mode -= 1
+
+            currentCommands[mode] += i
+
 
 class Command():
 
@@ -224,13 +311,13 @@ class Command():
                 length += len(i)
             return(length)
 
-        #Allows for negative indices
+        # Allows for negative indices
         if index < 0:
-            if mode =="so" or "eo":
+            if mode == "so" or "eo":
                 index += len(self.__optArgs)
-            elif mode =="sa" or "ea":
+            elif mode == "sa" or "ea":
                 index += len(self.__args)
-            index +=1
+            index += 1
 
         # calculates position based on arguments by summing up the lengths of the things prior to the position and adding this to the position of the command
         if mode == "s":
@@ -361,7 +448,7 @@ class Command():
             index (int, optional): index for argument to be placed at.
             val (str): the value of the argument
         """
-        self.__args.insert(index,val)
+        self.__args.insert(index, val)
 
     def appendArg(self, val: str) -> None:
         """
@@ -418,7 +505,7 @@ class Command():
             index (int, optional): index for option to be placed at.
             val (str): the value of the option
         """
-        self.__optArgs.insert(index,val)
+        self.__optArgs.insert(index, val)
 
     def appendOpt(self, val: str) -> None:
         """
@@ -429,15 +516,36 @@ class Command():
         """
         self.__optArgs.append(val)
 
-    #TODO as above, but for options
+    def getArgOrder(self) -> str:
+        """
+        Getter for the argument order
+
+        Returns:
+            str: "o": options first
+                 "a": arguments first
+        """
+        return(self.__argOrder)
+
+    def setArgOrder(self, val: str) -> None:
+        """
+        Setter for the argument order
+
+        Args:
+            val (str): the argument order:
+                      "o": options first
+                      "a": arguments first
+        """
+        self.__argOrder=val
+
 
 class Package(Command):
 
     def __init__(self, packageName: str, options: list = []) -> None:
         if len(options) == 0:
-            super().__init__("usepackage",-1,[packageName],[])
+            super().__init__("usepackage", -1, [packageName], [])
         else:
-            super().__init__("usepackage",-1, [packageName], [",".join(options)])
+            super().__init__("usepackage", -1,
+                             [packageName], [",".join(options)])
         self.__options = {}
         self.__packageName = packageName
         for i in options:
@@ -462,7 +570,7 @@ class Package(Command):
         Args:
             newVal (str): the new name of the package
         """
-        self.editArg(0,newVal)
+        self.editArg(0, newVal)
 
     def removeOption(self, option: str) -> None:
         """
