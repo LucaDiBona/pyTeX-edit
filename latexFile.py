@@ -433,14 +433,36 @@ class Command():
 
 class Package(Command):
 
-    def __init__(self, name: str, options: list = []) -> None:
-        super().__init__(name, 0)  # TODO fix this
+    def __init__(self, packageName: str, options: list = []) -> None:
+        if len(options) == 0:
+            super().__init__("usepackage",-1,[packageName],[])
+        else:
+            super().__init__("usepackage",-1, [packageName], [",".join(options)])
         self.__options = {}
+        self.__packageName = packageName
         for i in options:
             # TODO allow other splitting methods
             splitOptions = i.split("=", 2)
             splitOptions.append(None)
             self.__options[splitOptions[0]] = splitOptions[1]
+
+    def packageName(self) -> str:
+        """
+        Getter for the name of the package
+
+        Returns:
+            str: the name of the package
+        """
+        return(self.getArg(0))
+
+    def packageRename(self, newVal: str) -> None:
+        """
+        Renames a package
+
+        Args:
+            newVal (str): the new name of the package
+        """
+        self.editArg(0,newVal)
 
     def removeOption(self, option: str) -> None:
         """
@@ -514,7 +536,8 @@ class Package(Command):
             raise TypeError("No such option")
 
     def addOption(self, option: str, val) -> None:
-        """Adds new option and value
+        """
+        Adds new option and value
 
         Args:
             option (str): name of option

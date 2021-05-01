@@ -4,6 +4,9 @@ x = LatexFile("test.tex")
 y= Package("foo",["bar","marmite=food"])
 z= Package("foo",["cheese"])
 cmd = Command("testcommand",0,["arg","uments"],["Opt"])
+
+print([",".join([])])
+
 while running:
     command = input("> ")  # TODO Replace with reasonable TUI (curses maybe)
 
@@ -14,7 +17,7 @@ while running:
         print(x.getStructure())
     elif command == "ls pkg":
         for i in x.getPackages():
-            print(i.name())
+            print(i.packageName())
             print(i.options())
     elif command == "geo":
         print(x.package("amsmath"))
