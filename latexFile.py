@@ -17,8 +17,8 @@ class LatexFile():
                                 "contents": ""}
         self.CATCODES = [["\\"], ["{"], ["}"], ["$"], ["&"], ["\n"], ["#"],
                          ["^"], ["_"], [], [" ", " "], ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], [], [], ["%"], []]  # TODO use full unicode set L & M for letter codes (possibly from https://github.com/garabik/unicode) - maybe make this optional to reduce load times
-        #commands that import packages
-        self.USE_PACKAGE = ["usepackage","RequirePackage"]
+        # commands that import packages
+        self.USE_PACKAGE = ["usepackage", "RequirePackage"]
         self.fileName = fileName
         self.__f = open(fileName, "a+")
         self.__f.seek(0)
@@ -45,10 +45,11 @@ class LatexFile():
         for i, val in enumerate(self.SECTION_HIERARCHY):
             for j in self.__commands:
                 if j.name() == val:
-                    self.structure.append({"layer": i,"title": j.getArg(0), "pos": j.pos("s")})
+                    self.structure.append(
+                        {"layer": i, "title": j.getArg(0), "pos": j.pos("s")})
         return(self.structure)
 
-    def updatePackages(self) -> None: #TODO allow multiple packages in one cmd
+    def updatePackages(self) -> None:  # TODO allow multiple packages in one cmd
         """
         updates self.__packages from self.__commands
         """
@@ -56,7 +57,9 @@ class LatexFile():
         for i in self.__commands:
             if i.name() in self.USE_PACKAGE:
                 if i.optCount() > 0:
-                    self.__packages.append(Package(i.getArg(0),i.getOpt(0).split(",")))#TODO allow comma in value somehow?
+                    # TODO allow comma in value somehow?
+                    self.__packages.append(
+                        Package(i.getArg(0), i.getOpt(0).split(",")))
                 else:
                     self.__packages.append(Package(i.getArg(0)))
 
@@ -115,7 +118,7 @@ class LatexFile():
                 unpairedBrackets = 0
                 currentParam = ""
                 outputList = []
-                log = [] # list of starting positions
+                log = []  # list of starting positions
                 for j, val in enumerate(paramText):
                     if val in open:
                         unpairedBrackets += 1
@@ -127,14 +130,15 @@ class LatexFile():
                             currentParam = ""
                     if unpairedBrackets > 0:
                         currentParam += val
-                return(outputList,log)
+                return(outputList, log)
 
-            args, argLog = paramParse(self, param, self.CATCODES[1], self.CATCODES[2])
+            args, argLog = paramParse(
+                self, param, self.CATCODES[1], self.CATCODES[2])
             optArgs, optLog = paramParse(
                 self, param, self.ADDED_CC_ONE, self.ADDED_CC_TWO)
 
-            #deduces order of arguments
-            argOrder =[]
+            # deduces order of arguments
+            argOrder = []
             while (argLog != []) or (optLog != []):
                 if argLog == []:
                     argOrder.append("o")
@@ -548,6 +552,7 @@ class Package(Command):
 
     def __init__(self, packageName: str, options: list = []) -> None:
         if len(options) == 0:
+            # TODO replace "usepackage" with something more general
             super().__init__("usepackage", -1, [packageName], [])
         else:
             super().__init__("usepackage", -1,
