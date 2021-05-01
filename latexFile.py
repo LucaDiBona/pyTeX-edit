@@ -224,6 +224,14 @@ class Command():
                 length += len(i)
             return(length)
 
+        #Allows for negative indices
+        if index < 0:
+            if mode =="so" or "eo":
+                index += len(self.__optArgs)
+            elif mode =="sa" or "ea":
+                index += len(self.__args)
+            index +=1
+
         # calculates position based on arguments by summing up the lengths of the things prior to the position and adding this to the position of the command
         if mode == "s":
             return(self.__pos)

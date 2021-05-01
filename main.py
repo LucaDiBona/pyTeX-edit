@@ -14,6 +14,7 @@ while running:
     print(cmd.pos("ea"))
     print(cmd.pos("eo"))
     print(cmd.pos("sa",1))
+    print(cmd.pos("sa",-2))
 
     if command == "kill" or command == "q":
         running = False
