@@ -315,6 +315,65 @@ class Command():
         else:
             raise ValueError("Invalid mode or argOrder")
 
+    def getArgs(self) -> list:
+        """
+        Getter for the list of arguments
+
+        Returns:
+            list: list of all arguments
+        """
+        return(self.__args)
+
+    def getArg(self, index: int) -> str:
+        """
+        Getter for an individual argument
+
+        Args:
+            index (int): index of argument
+
+        Returns:
+            str: value of argument
+        """
+        return(self.__args[index])
+
+    def editArg(self, index: int, newVal: str) -> None:
+        """
+        Sets the value of a specific argument
+
+        Args:
+            index (int): index of argument
+            newVal (str): new value of argument
+        """
+        self.__args[index] = newVal
+
+    def removeArg(self, index: int = -1) -> None:
+        """
+        Removes an argument
+
+        Args:
+            index (int): index of argument. Defaults to last
+        """
+        self.__args.pop(index)
+
+    def insertArg(self, index: int, val: str) -> None:
+        """
+        Args:
+            index (int, optional): index for argument to be placed at.
+            val (str): the value of the argument
+        """
+        self.__args.insert(index,val)
+
+    def appendArg(self, val: str) -> None:
+        """
+        Appends and argument
+
+        Args:
+            val (str): argument to be appended
+        """
+        self.__args.append(val)
+
+
+    #TODO as above, but for options
 
 class Package(Command):
 
