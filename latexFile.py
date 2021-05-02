@@ -24,7 +24,10 @@ class LatexFile():
         self.__f.seek(0)
         self.__fContentsI = self.__f.read()
         self.fileContents = self.__fContentsI
-        self.__commands = self.parse()
+        self.__commands = self.parse(self.fileContents)
+        for i in self.__commands:
+            for j in i:
+                print(j)
         self.updatePackages()
 
     def updateFile(self) -> None:
@@ -110,9 +113,131 @@ class LatexFile():
                 return(None)
         self.__packages.append(package)
 
-    def parse(self) -> list:
+    # def parse(self) -> list:
+
+    #     def genCommand(self, text: str, pos: int, param=None) -> object:
+
+    #         def paramParse(self, paramText: str, open: list, close: list) -> list:
+    #             unpairedBrackets = 0
+    #             currentParam = ""
+    #             outputList = []
+    #             log = []  # list of starting positions
+    #             for j, val in enumerate(paramText):
+    #                 if val in open:
+    #                     unpairedBrackets += 1
+    #                     log.append(j)
+    #                 elif val in close:
+    #                     unpairedBrackets -= 1
+    #                     if unpairedBrackets == 0:
+    #                         outputList.append(currentParam[1:])
+    #                         currentParam = ""
+    #                 if unpairedBrackets > 0:
+    #                     currentParam += val
+    #             return(outputList, log)
+
+    #         args, argLog = paramParse(
+    #             self, param, self.CATCODES[1], self.CATCODES[2])
+    #         optArgs, optLog = paramParse(
+    #             self, param, self.ADDED_CC_ONE, self.ADDED_CC_TWO)
+
+    #         # deduces order of arguments
+    #         argOrder = []
+    #         while (argLog != []) or (optLog != []):
+    #             if argLog == []:
+    #                 argOrder.append("o")
+    #                 optLog.pop(0)
+    #             elif optLog == []:
+    #                 argOrder.append("a")
+    #                 argLog.pop(0)
+    #             elif argLog[0] < optLog[0]:
+    #                 argOrder.append("a")
+    #                 argLog.pop(0)
+    #             else:
+    #                 argOrder.append("o")
+    #                 optLog.pop(0)
+
+    #         return(Command(text[1:], pos, args, optArgs, argOrder))
+
+    #     """
+    #     Modes:
+    #             0: text mode
+    #             1: command mode
+    #             2: parameter mode
+    #             3: command in parameter mode
+    #             4: parameter in parameter mode
+    #             5: command in parameter in parameter mode
+    #             ...
+    #     """
+    #     mode = 0
+    #     pos = 0
+    #     commands = []
+    #     currentCommands = [""]
+    #     output = []
+    #     for i, val in enumerate(self.fileContents):
+
+    #         # start new command
+    #         if val in self.CATCODES[0]:  # TODO deal with \\ special case
+    #             # TODO deal with single char commands
+    #             # TODO deal with left/right delimiter pairs
+    #             # TODO deal with \a= etc in tabbed environments
+    #             # if in text mode, switch to scan mode
+    #             if mode % 2 == 0:
+    #                 mode += 1  # command
+    #                 currentCommands.append("")
+    #                 pos = i
+    #             # if in command mode, process previous command
+    #             else:
+    #                 #! IDK if this will work
+    #                 currentCommands[-2] += currentCommands[-1]
+    #                 commands.append(genCommand(self, currentCommands[-1], pos))
+    #                 currentCommands.pop()
+
+    #         # continue to add to current command
+    #         elif val in self.CATCODES[11]:
+    #             pass
+
+    #         # start looking for parameters
+    #         elif val in self.CATCODES[1]:
+    #             # if in command, go to next parameter
+    #             if mode % 2 == 1:  # TODO deal with \{ command
+    #                 mode += 1  # parameter
+    #                 currentCommands.append("")
+    #             # if in parameter/text mode, increment unpaired brackets
+
+    #         elif val in self.ADDED_CC_ONE and mode % 2 == 1:
+    #             mode += 1
+    #             currentCommands.append("")
+
+    #         elif val in self.CATCODES[2]:
+    #             if mode % 2 == 1:
+    #                 pass  # TODO deal with \} and \right}
+    #             elif len(self.fileContents) > (i+1):
+    #                 if not(self.fileContents[i+1] in (self.CATCODES[1] + self.ADDED_CC_ONE)):
+    #                     commands.append(genCommand(
+    #                         self, currentCommands[-2], pos, (currentCommands[-1]+val)))
+    #                     currentCommands[-2] += currentCommands[-1]
+    #                     currentCommands[-3] += currentCommands[-2]
+    #                     currentCommands.pop()
+    #                     currentCommands.pop()
+    #                     mode -= 2
+
+    #         # invalid char
+    #         elif val in self.CATCODES[15]:
+    #             raise ValueError(".tex file contains and invalid character")
+    #         else:
+    #             if mode % 2 == 1:
+    #                 currentCommands[-2] += currentCommands[-1]
+    #                 commands.append(genCommand(self, currentCommands[-1], pos))
+    #                 currentCommands.pop()
+    #                 mode -= 1
+
+    #         currentCommands[mode] += val
+    #     return(commands)
+
+    def parse(self, parseText: str) -> list:
 
         def genCommand(self, text: str, pos: int, param=None) -> object:
+            #TODO get to work with paramOutput (example output args = [("",<COMMAND>," +2"),"x^2"])
 
             def paramParse(self, paramText: str, open: list, close: list) -> list:
                 unpairedBrackets = 0
@@ -155,6 +280,74 @@ class LatexFile():
 
             return(Command(text[1:], pos, args, optArgs, argOrder))
 
+        def procCmd(self, inputText: str):
+
+            # strips the first char, which is a duplicate
+            inputText = inputText[1:]
+
+            openText = ""
+            commandText = ""
+            paramText = ""
+            endText = ""
+            mode = "o"
+            for i, val in enumerate(inputText):
+
+                # scans for start of command
+                if mode == "o":
+
+                    openText += val
+
+                    if val in self.CATCODES[0]:
+
+                        mode = "c"
+                        commandText += val
+                        openText = openText[:-1]
+
+                elif mode == "c":
+
+                    commandText += val
+
+                    if val in (self.CATCODES[1] + self.ADDED_CC_ONE):
+
+                        mode = "p"
+                        paramText += val
+                        commandText = commandText[:-1]
+                        paramNest = 1
+
+                elif mode == "p":
+
+                    paramText += val
+
+                    if val in self.CATCODES[1]:
+                        paramNest += 1
+
+                    elif val in self.CATCODES[2]:
+                        paramNest -= 1
+
+                        if paramNest == 0:
+
+                            if len(inputText) > (i+1):
+
+                                if not (inputText[i+1] in (self.CATCODES[1] + self.ADDED_CC_ONE)):
+
+                                    mode = "e"
+
+                else:
+
+                    endText += val
+
+            # reprocess param if contains \
+            paramParsed = False
+            for i in self.CATCODES[0]:
+                if i in paramText and not paramParsed:
+                    paramOutput = self.parse(paramText)
+                    paramParsed = True
+
+            if not paramParsed:
+                paramOutput = paramText
+
+            return paramOutput, openText, endText
+
         """
         Modes:
                 0: text mode
@@ -165,70 +358,80 @@ class LatexFile():
                 5: command in parameter in parameter mode
                 ...
         """
-        mode = 0
+        mode = "t"
+        paramNest = 0
         pos = 0
-        commands = []
-        currentCommands = [""]
-        for i, val in enumerate(self.fileContents):
+        curStr = ""
+        output = []
+        # adds temp char to the start of the file for easier processing
+        parseText = "X" + parseText
+        for i, val in enumerate(parseText):
 
             # start new command
-            if val in self.CATCODES[0]:  # TODO deal with \\ special case
-                # TODO deal with single char commands
-                # TODO deal with left/right delimiter pairs
-                # TODO deal with \a= etc in tabbed environments
-                # if in text mode, switch to scan mode
-                if mode % 2 == 0:
-                    mode += 1  # command
-                    currentCommands.append("")
-                    pos = i
-                # if in command mode, process previous command
-                else:
-                    #! IDK if this will work
-                    currentCommands[-2] += currentCommands[-1]
-                    commands.append(genCommand(self, currentCommands[-1], pos))
-                    currentCommands.pop()
+            if val in self.CATCODES[0]:
+                # TODO deal with \\ case
+                # TODO deal with delim pairs
 
-            # continue to add to current command
+                # if in text mode, switch to command mode
+                if mode == "t":
+                    mode = "c"
+
+                # if in command mode, process previous command
+                elif mode == "c":
+                    output.append(procCmd(self, (curStr + val)))
+                    curStr = ""
+
+            # begin group
+            elif val in self.CATCODES[1]:
+
+                paramNest += 1
+
+                # if in command mode, switch to par mode
+                if mode == "c":
+                    mode = "p"
+
+            # begin parameters
+            elif val in self.ADDED_CC_ONE and mode == "c":
+                mode = "p"
+
+            # end group
+            elif val in self.CATCODES[2]:
+
+                paramNest -= 1
+
+                if mode == "p" and paramNest == 0:
+
+                    # if not end of document, look at next char
+                    if len(parseText) > (i+1):
+
+                        # if next char doesn't start group, process previous command
+                        if not (parseText[i+1] in (self.CATCODES[1] + self.ADDED_CC_ONE)):
+                            mode = "t"
+                            output.append(procCmd(self, (curStr+val)))
+                            curStr = ""
+
+                    else:
+                        output.append(procCmd(self, (curStr+val)))
+                        curStr = ""
+
+            # letters
             elif val in self.CATCODES[11]:
                 pass
 
-            # start looking for parameters
-            elif val in self.CATCODES[1]:
-                # if in command, go to next parameter
-                if mode % 2 == 1:  # TODO deal with \{ command
-                    mode += 1  # parameter
-                    currentCommands.append("")
-                # if in parameter/text mode, increment unpaired brackets
-
-            elif val in self.ADDED_CC_ONE and mode % 2 == 1:
-                mode += 1
-                currentCommands.append("")
-
-            elif val in self.CATCODES[2]:
-                if mode % 2 == 1:
-                    pass  # TODO deal with \} and \right}
-                elif len(self.fileContents) > (i+1):
-                    if not(self.fileContents[i+1] in (self.CATCODES[1] + self.ADDED_CC_ONE)):
-                        commands.append(genCommand(
-                            self, currentCommands[-2], pos, (currentCommands[-1]+val)))
-                        currentCommands[-2] += currentCommands[-1]
-                        currentCommands[-3] += currentCommands[-2]
-                        currentCommands.pop()
-                        currentCommands.pop()
-                        mode -= 2
-
             # invalid char
             elif val in self.CATCODES[15]:
-                raise ValueError(".tex file contains and invalid character")
-            else:
-                if mode % 2 == 1:
-                    currentCommands[-2] += currentCommands[-1]
-                    commands.append(genCommand(self, currentCommands[-1], pos))
-                    currentCommands.pop()
-                    mode -= 1
+                raise ValueError("file contains invalid character")
 
-            currentCommands[mode] += val
-        return(commands)
+            else:
+
+                # if in command mode, process previous command
+                if mode == "c":
+                    mode = "t"
+                    output.append(procCmd(self, (curStr+val)))
+                    curStr = ""
+            curStr += val
+
+        return(output)
 
 
 class Command():
