@@ -17,6 +17,7 @@ class LatexFile():
                                 "contents": ""}
         self.CATCODES = [["\\"], ["{"], ["}"], ["$"], ["&"], ["\n"], ["#"],
                          ["^"], ["_"], [], [" ", " "], ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], [], [], ["%"], []]  # TODO use full unicode set L & M for letter codes (possibly from https://github.com/garabik/unicode) - maybe make this optional to reduce load times
+        catcodes = self.CATCODES
         # commands that import packages
         self.USE_PACKAGE = ["usepackage", "RequirePackage"]
         self.DOCUMENT_CLASS = ["documentclass"]
@@ -32,7 +33,14 @@ class LatexFile():
         self.updatePackages()
 
     def updateFile(self) -> None:
-        pass  # TODO update file based on changes
+        outputStr = ""
+        for i in self.__fileStructure:
+            for j in i:
+                if type(j) == str:
+                    outputStr += j
+                else:
+                    outputStr += j.getCommand()
+        self.fileContents = outputStr
 
     def getDocumentClass(self):
         """
@@ -44,7 +52,7 @@ class LatexFile():
         """
         for i in self.__commands:
             if i.name() in self.DOCUMENT_CLASS:
-                return([i.getArg(0),i.getOpts()])
+                return([i.getArg(0), i.getOpts()])
 
     def setDocumentClass(self, docclass: str, opts: list = []) -> None:
         """
@@ -56,7 +64,7 @@ class LatexFile():
         """
         for i in self.__commands:
             if i.name() in self.DOCUMENT_CLASS:
-                i.editArg(0,docclass)
+                i.editArg(0, docclass)
                 i.setOpts(opts)
 
     def getStructure(self) -> list:
@@ -88,9 +96,9 @@ class LatexFile():
                 if i.optCount() > 0:
                     # TODO allow comma in value somehow?
                     self.__packages.append(
-                        Package(i.getArg(0), i.getOpt(0).split(",")))
+                        Package(self,i.getArg(0), i.getOpt(0).split(",")))
                 else:
-                    self.__packages.append(Package(i.getArg(0)))
+                    self.__packages.append(Package(self,i.getArg(0)))
 
     def updateCommands(self, command: str) -> None:
         pass  # TODO get this to work
@@ -263,7 +271,7 @@ class LatexFile():
     def parse(self, parseText: str) -> list:
 
         def genCommand(self, text: str, pos: int, param=None) -> object:
-            #TODO get to work with paramOutput (example output args = [("",<COMMAND>," +2"),"x^2"])
+            # TODO get to work with paramOutput (example output args = [("",<COMMAND>," +2"),"x^2"])
 
             def paramParse(self, paramText: str, open: list, close: list) -> list:
                 unpairedBrackets = 0
@@ -304,7 +312,7 @@ class LatexFile():
                     argOrder.append("o")
                     optLog.pop(0)
 
-            return(Command(text[1:], pos, args, optArgs, argOrder))
+            return(Command(self,text[1:], pos, args, optArgs, argOrder))
 
         def procCmd(self, inputText: str):
 
@@ -315,7 +323,7 @@ class LatexFile():
             commandText = ""
             paramText = ""
             endText = ""
-            #TODO replace the above with a list in the form [text, command, paramText, text, command...,text]
+            # TODO replace the above with a list in the form [text, command, paramText, text, command...,text]
             mode = "o"
             for i, val in enumerate(inputText):
 
@@ -373,7 +381,7 @@ class LatexFile():
             if not paramParsed:
                 paramOutput = paramText
 
-            return openText, genCommand(self, commandText, 0, paramText), endText
+            return openText, genCommand(self, commandText, 0, paramText), endText #TODO replace 0 with actual pos
 
         """
         Modes:
@@ -463,11 +471,12 @@ class LatexFile():
 
 class Command():
 
-    def __init__(self, name: str, pos: int, args: list = [], optArgs: list = [], argOrder: list = []) -> None:
+    def __init__(self, file, name: str, pos: int, args: list = [], optArgs: list = [], argOrder: list = []) -> None:
         self.__name = name
         self.__pos = pos
         self.__args = args
         self.__optArgs = optArgs
+        self.__file = file
 
         # creates full arg order list
         if "o" not in argOrder:
@@ -487,6 +496,8 @@ class Command():
                 raise ValueError('The value of argOrder must be "o" or "a"')
             if (optCount > len(optArgs)) or (argCount > len(args)):
                 argOrder.pop(i)
+
+            #TODO fix this, it isn't working
 
         self.__argOrder = argOrder
 
@@ -795,15 +806,38 @@ class Command():
         """
         self.__optArgs = opts
 
+    def getCommand(self) -> str:
+        """
+        Returns a string of the command
+
+        Returns:
+            str: the command as a string
+        """
+        optNum=0
+        argNum=0
+        outputStr = self.__file.CATCODES[0][0] + self.__name
+        for i in self.__argOrder:
+            if i == "o":
+                outputStr += self.__file.CATCODES[1][0]
+                outputStr += self.__optArgs[optNum]
+                outputStr += self.__file.CATCODES[2][0]
+                optNum += 1
+            else:
+                outputStr += self.__file.ADDED_CC_ONE[0]
+                outputStr += self.__args[argNum]
+                outputStr += self.__file.ADDED_CC_TWO[0]
+                argNum += 1
+        return(outputStr)
+
 
 class Package(Command):
 
-    def __init__(self, packageName: str, options: list = []) -> None:
+    def __init__(self,file, packageName: str, options: list = []) -> None:
         if len(options) == 0:
             # TODO replace "usepackage" with something more general
-            super().__init__("usepackage", -1, [packageName], [])
+            super().__init__(file,"usepackage", -1, [packageName], [])
         else:
-            super().__init__("usepackage", -1,
+            super().__init__(file,"usepackage", -1,
                              [packageName], [",".join(options)])
         self.__options = {}
         self.__packageName = packageName

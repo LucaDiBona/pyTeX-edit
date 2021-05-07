@@ -18,7 +18,8 @@ while running:
 
     print(x.getDocumentClass())
     x.setDocumentClass("book", ["a4paper"])
-    print(x.getDocumentClass())
+    x.updateFile()
+    print(x.fileContents)
 
     if command == "kill" or command == "q":
         running = False
