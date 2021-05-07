@@ -35,9 +35,29 @@ class LatexFile():
         pass  # TODO update file based on changes
 
     def getDocumentClass(self):
+        """
+        Getter for the document class
+
+        Returns:
+            str: name of the document class
+            list: the options of the document class
+        """
         for i in self.__commands:
             if i.name() in self.DOCUMENT_CLASS:
                 return([i.getArg(0),i.getOpts()])
+
+    def setDocumentClass(self, docclass: str, opts: list = []) -> None:
+        """
+        Setter for the document class
+
+        Args:
+            class (str): the document class
+            opts (list): a list of the options
+        """
+        for i in self.__commands:
+            if i.name() in self.DOCUMENT_CLASS:
+                i.editArg(0,docclass)
+                i.setOpts(opts)
 
     def getStructure(self) -> list:
         """
@@ -670,6 +690,15 @@ class Command():
         """
         return(len(self.__args))
 
+    def setArgs(self, args: list) -> None:
+        """
+        Sets all the arguments in one command
+
+        Args:
+            args (list): the full list of commands
+        """
+        self.__args = args
+
     def getOpts(self) -> list:
         """
         Getter for the list of options
@@ -756,6 +785,15 @@ class Command():
                       "a": arguments first
         """
         self.__argOrder = val
+
+    def setOpts(self, opts: list) -> None:
+        """
+        Sets all the options in one command
+
+        Args:
+            opts (list): the full list of options
+        """
+        self.__optArgs = opts
 
 
 class Package(Command):

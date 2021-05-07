@@ -17,6 +17,8 @@ while running:
     command = input("> ")  # TODO Replace with reasonable TUI (curses maybe)
 
     print(x.getDocumentClass())
+    x.setDocumentClass("book", ["a4paper"])
+    print(x.getDocumentClass())
 
     if command == "kill" or command == "q":
         running = False
