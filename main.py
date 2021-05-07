@@ -1,3 +1,7 @@
+import os, sys
+abspath = os.path.abspath(sys.argv[0])
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 from latexFile import Command, LatexFile, Package
 running = True
 x = LatexFile("test.tex")
@@ -5,11 +9,14 @@ y= Package("foo",["bar","marmite=food"])
 z= Package("foo",["cheese"])
 cmd = Command("testcommand",0,["arg","uments"],["Opt"])
 
+
 print([",".join([])])
 print("\#")
 
 while running:
     command = input("> ")  # TODO Replace with reasonable TUI (curses maybe)
+
+    print(x.getDocumentClass())
 
     if command == "kill" or command == "q":
         running = False

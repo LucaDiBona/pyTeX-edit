@@ -19,19 +19,25 @@ class LatexFile():
                          ["^"], ["_"], [], [" ", " "], ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], [], [], ["%"], []]  # TODO use full unicode set L & M for letter codes (possibly from https://github.com/garabik/unicode) - maybe make this optional to reduce load times
         # commands that import packages
         self.USE_PACKAGE = ["usepackage", "RequirePackage"]
+        self.DOCUMENT_CLASS = ["documentclass"]
         self.fileName = fileName
         self.__f = open(fileName, "a+")
         self.__f.seek(0)
         self.__fContentsI = self.__f.read()
         self.fileContents = self.__fContentsI
-        self.__commands = self.parse(self.fileContents)
-        for i in self.__commands:
-            for j in i:
-                print(j)
+        self.__fileStructure = self.parse(self.fileContents)
+        self.__commands = []
+        for i in self.__fileStructure:
+            self.__commands.append(i[1])
         self.updatePackages()
 
     def updateFile(self) -> None:
         pass  # TODO update file based on changes
+
+    def getDocumentClass(self):
+        for i in self.__commands:
+            if i.name() in self.DOCUMENT_CLASS:
+                return([i.getArg(0),i.getOpts()])
 
     def getStructure(self) -> list:
         """
@@ -289,6 +295,7 @@ class LatexFile():
             commandText = ""
             paramText = ""
             endText = ""
+            #TODO replace the above with a list in the form [text, command, paramText, text, command...,text]
             mode = "o"
             for i, val in enumerate(inputText):
 
@@ -346,7 +353,7 @@ class LatexFile():
             if not paramParsed:
                 paramOutput = paramText
 
-            return paramOutput, openText, endText
+            return openText, genCommand(self, commandText, 0, paramText), endText
 
         """
         Modes:
