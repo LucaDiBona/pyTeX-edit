@@ -5,8 +5,8 @@ os.chdir(dname)
 from latexFile import Command, LatexFile, Package
 running = True
 x = LatexFile("test.tex")
-y= Package("foo",["bar","marmite=food"])
-z= Package("foo",["cheese"])
+y= Package(x,"foo",["bar","marmite=food"]) #TODO fix this
+z= Package(x,"foo",["cheese"])
 cmd = Command("testcommand",0,["arg","uments"],["Opt"])
 
 
@@ -15,11 +15,6 @@ print("\#")
 
 while running:
     command = input("> ")  # TODO Replace with reasonable TUI (curses maybe)
-
-    print(x.getDocumentClass())
-    x.setDocumentClass("book", ["a4paper"])
-    x.updateFile()
-    print(x.fileContents)
 
     if command == "kill" or command == "q":
         running = False
