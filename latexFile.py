@@ -96,9 +96,9 @@ class LatexFile():
                 if i.optCount() > 0:
                     # TODO allow comma in value somehow?
                     self.__packages.append(
-                        Package(self,i.getArg(0), i.getOpt(0).split(",")))
+                        Package(self, i.getArg(0), i.getOpt(0).split(",")))
                 else:
-                    self.__packages.append(Package(self,i.getArg(0)))
+                    self.__packages.append(Package(self, i.getArg(0)))
 
     def updateCommands(self, command: str) -> None:
         pass  # TODO get this to work
@@ -312,7 +312,7 @@ class LatexFile():
                     argOrder.append("o")
                     optLog.pop(0)
 
-            return(Command(self,text[1:], pos, args, optArgs, argOrder))
+            return(Command(self, text[1:], pos, args, optArgs, argOrder))
 
         def procCmd(self, inputText: str):
 
@@ -381,7 +381,8 @@ class LatexFile():
             if not paramParsed:
                 paramOutput = paramText
 
-            return openText, genCommand(self, commandText, 0, paramText), endText #TODO replace 0 with actual pos
+            # TODO replace 0 with actual pos
+            return openText, genCommand(self, commandText, 0, paramText), endText
 
         """
         Modes:
@@ -487,17 +488,24 @@ class Command():
             argOrder += argOrder
         optCount = 0
         argCount = 0
-        for i, val in enumerate(argOrder):
-            if val == "o":
+        running = True
+        i = 0
+        while running:
+            if argOrder[i] == "o":
                 optCount += 1
-            elif val == "a":
+            elif argOrder[i] == "a":
                 argCount += 1
             else:
                 raise ValueError('The value of argOrder must be "o" or "a"')
             if (optCount > len(optArgs)) or (argCount > len(args)):
                 argOrder.pop(i)
-
-            #TODO fix this, it isn't working
+                if i >= len(argOrder):
+                    running = False
+            elif i+1 < len(argOrder):
+                i += 1
+            else:
+                running = False
+        # TODO fix this, it isn't working
 
         self.__argOrder = argOrder
 
@@ -813,8 +821,8 @@ class Command():
         Returns:
             str: the command as a string
         """
-        optNum=0
-        argNum=0
+        optNum = 0
+        argNum = 0
         outputStr = self.__file.CATCODES[0][0] + self.__name
         for i in self.__argOrder:
             if i == "o":
@@ -832,15 +840,15 @@ class Command():
 
 class Package(Command):
 
-    def __init__(self,file, packageName: str, options: list = []) -> None:
+    def __init__(self, file, packageName: str, options: list = []) -> None:
         if len(options) == 0:
             # TODO replace "usepackage" with something more general
-            super().__init__(file,"usepackage", -1, [packageName], [])
+            super().__init__(file, "usepackage", -1, [packageName], [])
         else:
-            super().__init__(file,"usepackage", -1,
+            super().__init__(file, "usepackage", -1,
                              [packageName], [",".join(options)])
         self.__options = {}
-        self.__packageName = packageName
+        self.__packageName = packageName #TODO make this used
         for i in options:
             # TODO allow other splitting methods
             splitOptions = i.split("=", 2)
